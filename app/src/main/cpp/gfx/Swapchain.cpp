@@ -24,12 +24,21 @@ bool Swapchain::create(const VulkanContext& ctx, uint32_t w, uint32_t h) {
     }
     mFormat = chosen.format;
 
-    if (caps.currentExtent.width != UINT32_MAX) {
-        mExtent = caps.currentExtent;
-    } else {
-        mExtent.width  = std::clamp(w, caps.minImageExtent.width,  caps.maxImageExtent.width);
-        mExtent.height = std::clamp(h, caps.minImageExtent.height, caps.maxImageExtent.height);
-    }
+    mPreTransform = caps.currentTransform;
+    const bool quarterTurn = (mPreTransform == VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR ||
+                              mPreTransform == VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR);
+
+    // Android may report currentExtent in window orientation or in native
+    // orientation. The game is landscape-only, so derive the upright landscape
+    // size, then swap it for 90/270 pre-rotation (the image is then portrait).
+    const uint32_t rawW = (caps.currentExtent.width  != UINT32_MAX) ? caps.currentExtent.width  : w;
+    const uint32_t rawH = (caps.currentExtent.height != UINT32_MAX) ? caps.currentExtent.height : h;
+    const uint32_t longSide  = std::max(rawW, rawH);
+    const uint32_t shortSide = std::min(rawW, rawH);
+    mExtent.width  = quarterTurn ? shortSide : longSide;
+    mExtent.height = quarterTurn ? longSide  : shortSide;
+    mExtent.width  = std::clamp(mExtent.width,  caps.minImageExtent.width,  caps.maxImageExtent.width);
+    mExtent.height = std::clamp(mExtent.height, caps.minImageExtent.height, caps.maxImageExtent.height);
     if (mExtent.width == 0 || mExtent.height == 0) return false;
 
     uint32_t imgCount = std::max(3u, caps.minImageCount);
@@ -44,8 +53,6 @@ bool Swapchain::create(const VulkanContext& ctx, uint32_t w, uint32_t h) {
         else
             alpha = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
     }
-
-    mPreTransform = caps.currentTransform;
 
     VkSwapchainCreateInfoKHR ci{};
     ci.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
