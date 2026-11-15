@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 
@@ -124,13 +125,22 @@ bool Renderer::render(float dt) {
     float sw = static_cast<float>(mSwap.extent().width);
     float sh = static_cast<float>(mSwap.extent().height);
 
-    char buf[64];
-    std::snprintf(buf, sizeof(buf), "FPS %d  %.1f MS", mFpsShow, mMsShow);
+    const Rotation rot = getRotation();
+    const bool quarter = (rot == Rotation::Rot90 || rot == Rotation::Rot270);
+    const float lw = quarter ? sh : sw;   // upright landscape width
+    const float lh = quarter ? sw : sh;   // upright landscape height
+    const float textScale = std::max(2.0f, std::floor(lh / 300.0f));
+    const float marginX = lw * 0.04f;
+    const float marginY = lh * 0.05f;
 
-    Rotation rot = getRotation();
+    char buf[96];
+    std::snprintf(buf, sizeof(buf), "FPS %d  %.1f MS\n%u %u %d",
+                  mFpsShow, static_cast<double>(mMsShow),
+                  mSwap.extent().width, mSwap.extent().height,
+                  static_cast<int>(rot));
 
     mText.beginFrame();
-    mText.drawText(buf, 8.0f, 8.0f, 2.0f, rot, sw, sh);
+    mText.drawText(buf, marginX, marginY, textScale, rot, sw, sh);
     mText.record(mCmd[mFrame], mFrame, sw, sh);
 
     vkCmdEndRenderPass(mCmd[mFrame]);
