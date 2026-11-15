@@ -50,7 +50,7 @@ private:
     uint32_t         mPresFamily = UINT32_MAX;
     VkCommandPool    mCmdPool    = VK_NULL_HANDLE;
     DeviceCaps       mCaps;
-    bool             mValidation = false;
+    [[maybe_unused]] bool mValidation = false;
     VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
 };
 
