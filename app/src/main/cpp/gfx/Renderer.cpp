@@ -179,7 +179,8 @@ void Renderer::destroySync() {
     for (int i = 0; i < kFrames; ++i) {
         if (mFence[i]) vkDestroyFence(mCtx.device(), mFence[i], nullptr);
         if (mAvail[i]) vkDestroySemaphore(mCtx.device(), mAvail[i], nullptr);
-        mFence[i] = mAvail[i] = VK_NULL_HANDLE;
+        mFence[i] = VK_NULL_HANDLE;
+        mAvail[i] = VK_NULL_HANDLE;
     }
 }
 

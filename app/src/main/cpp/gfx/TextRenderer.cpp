@@ -206,7 +206,8 @@ void TextRenderer::destroyBuffers(const VulkanContext& ctx) {
         if (mBuffers[i])  vkDestroyBuffer(ctx.device(), mBuffers[i], nullptr);
         if (mMemories[i]) vkFreeMemory(ctx.device(), mMemories[i], nullptr);
         mMapped[i] = nullptr;
-        mBuffers[i] = mMemories[i] = VK_NULL_HANDLE;
+        mBuffers[i] = VK_NULL_HANDLE;
+        mMemories[i] = VK_NULL_HANDLE;
     }
 }
 
